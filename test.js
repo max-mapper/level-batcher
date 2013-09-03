@@ -9,8 +9,8 @@ batcher.pipe(writer).pipe(batcher)
 
 function onbatch(batch) {
   console.log('batch', batch.length)
-  this.queue(true)
+  batcher.next()
 }
 
-for (var i = 0; i < 3000; ++i) batcher.write(crypto.randomBytes(900))
+for (var i = 0; i < 3000; ++i) batcher.write(crypto.randomBytes(3000))
 batcher.end()

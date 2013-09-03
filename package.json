@@ -1,12 +1,12 @@
 {
   "name": "level-batcher",
-  "version": "0.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "stream designed for leveldb that you write objects to, and it emits batches of objects that are under a byte size limit",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test.js"
   },
-  "author": "",
+  "author": "max ogden",
   "license": "BSD",
   "dependencies": {
     "through": "~2.3.4"

@@ -2,26 +2,29 @@ var through = require('through')
 
 module.exports = function(limit) {
   limit = limit || 1024 * 1024 * 1 // 1mb, levelup default writeBufferSize
+  var currentBatch, batchPending, size
   
-  var currentBatch
-  var batchPending = false
-  var size = 0
+  function reset() {
+    currentBatch = []
+    batchPending = false
+    size = 0
+  }
+
+  reset()
+  
   var margaretBatcher = through(batch, finish)
+  
+  // call this from consumer stream to get next batch
+  margaretBatcher.next = function() {
+    process.nextTick(function() {
+      margaretBatcher.resume()
+    })
+  }
+  
   return margaretBatcher
   
   function batch(obj) {
-    console.log('OBJ', obj)
-    // if 'true' it means consumer is asking 'give me more data'
-    if (obj && typeof obj === 'boolean') {
-      currentBatch = []
-      batchPending = false
-      size = 0
-      margaretBatcher.resume()
-      return
-    }
-    
     var len = getByteLength(obj)
-    if (!currentBatch) currentBatch = []
 
     // keep batches under limit
     if ((size + len) >= limit) {
@@ -35,14 +38,14 @@ module.exports = function(limit) {
   }
   
   function finish() {
-    var self = this
     if (currentBatch) write()
-    self.queue(null)
+    margaretBatcher.queue(null)
   }
   
   function write(cb) {
     margaretBatcher.queue(currentBatch)
     margaretBatcher.pause()
+    reset()
   }
   
   function getByteLength(obj) {
