@@ -2,7 +2,7 @@ var through = require('through')
 
 module.exports = function(limit) {
   limit = limit || 1024 * 1024 * 1 // 1mb, levelup default writeBufferSize
-  var currentBatch, batchPending, size
+  var currentBatch, batchPending, size, started
   
   function reset() {
     currentBatch = []
@@ -18,12 +18,20 @@ module.exports = function(limit) {
   margaretBatcher.next = function() {
     process.nextTick(function() {
       margaretBatcher.resume()
+      if (currentBatch.length > 0) write()
     })
   }
   
   return margaretBatcher
   
   function batch(obj) {
+    if (!started) {
+      margaretBatcher.queue([obj])
+      margaretBatcher.pause()
+      started = true
+      return
+    }
+    
     var len = getByteLength(obj)
 
     // keep batches under limit
@@ -42,7 +50,7 @@ module.exports = function(limit) {
     margaretBatcher.queue(null)
   }
   
-  function write(cb) {
+  function write() {
     margaretBatcher.queue(currentBatch)
     margaretBatcher.pause()
     reset()

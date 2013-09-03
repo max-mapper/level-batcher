@@ -1,6 +1,6 @@
 {
   "name": "level-batcher",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "stream designed for leveldb that you write objects to, and it emits batches of objects that are under a byte size limit",
   "main": "index.js",
   "scripts": {
