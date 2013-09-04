@@ -56,9 +56,21 @@ module.exports = function(limit) {
     reset()
   }
   
-  function getByteLength(obj) {
+  function getLen (obj) {
     var len = obj.length
-    if (!len) len = JSON.stringify(obj) // simplest way to get object size?
-    return len
+    if (len) return len
+    try {
+      return JSON.stringify(obj).length
+    } catch (e) {
+      // if we can't determine length properly assume that it is big
+      return limit
+    }
+  }
+  
+  function getByteLength(obj) {
+    // we should actually always have a key and value on a level put
+    return typeof obj.key !== 'undefined' && typeof obj.value !== 'undefined'
+      ? getLen(obj.key) + getLen(obj.value)
+      : getLen(obj)
   }
 }
