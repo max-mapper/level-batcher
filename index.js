@@ -1,12 +1,12 @@
 var through = require('through')
+var setImmediate = setImmediate || function (fn) { setTimeout(fn, 0) }
 
 module.exports = function(limit) {
   limit = limit || 1024 * 1024 * 1 // 1mb, levelup default writeBufferSize
-  var currentBatch, batchPending, size, started
+  var currentBatch, size, started
   
   function reset() {
     currentBatch = []
-    batchPending = false
     size = 0
   }
 
@@ -37,8 +37,14 @@ module.exports = function(limit) {
     // keep batches under limit
     if ((size + len) >= limit) {
       // if single obj is bigger than limit
-      if (size === 0) currentBatch.push(obj)
-      write()
+      if (size === 0) {
+        currentBatch.push(obj)
+        write()
+      } else {
+        // queue current batch and batch obj again to have it added to next batch 
+        write()
+        setImmediate(batch.bind(null, obj))
+      }
     } else {
       currentBatch.push(obj)
       size += len
